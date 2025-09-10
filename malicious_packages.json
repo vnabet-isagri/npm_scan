@@ -25,7 +25,6 @@
     "slice-ansi": ["7.1.1"],
     "simple-swizzle": ["0.2.3"],
     "chalk-template": ["1.1.1"],
-    "supports-hyperlinks": ["4.1.1"],
-    "rxjs": ["7.8.1", "7.8.2"]
+    "supports-hyperlinks": ["4.1.1"]
   }
 }
