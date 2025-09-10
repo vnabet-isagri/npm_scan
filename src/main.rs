@@ -7,6 +7,7 @@ use chrono::Local;
 use reqwest;
 use std::error::Error;
 
+
 #[derive(Deserialize)]
 struct PackageLock {
     packages: Option<HashMap<String, PackageInfo>>,
@@ -23,6 +24,35 @@ struct MaliciousConfig {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+
+    #[cfg(windows)]
+    {
+        use windows::{
+            core::PCWSTR,
+            Win32::{
+                Foundation::HINSTANCE,
+                System::LibraryLoader::GetModuleHandleW,
+                UI::WindowsAndMessaging::{LoadImageW, IMAGE_ICON, LR_DEFAULTSIZE},
+            },
+        };
+
+        let hmodule = unsafe { GetModuleHandleW(None)? };
+            let hinstance: HINSTANCE = hmodule.into();
+            let _icon = unsafe {
+                LoadImageW(
+                    Some(hinstance),
+                    PCWSTR(1 as _), // identifiant numérique 1 défini dans embed_icon.rc
+                    IMAGE_ICON,
+                    0,
+                    0,
+                    LR_DEFAULTSIZE,
+                )
+            }?;
+    }
+
+
+
+
     let default_root = if cfg!(windows) { "C:\\" } else { "/" };
 
     let args = std::env::args().skip(1).collect::<Vec<_>>();
