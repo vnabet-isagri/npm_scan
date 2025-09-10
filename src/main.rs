@@ -23,24 +23,33 @@ struct MaliciousConfig {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Définir le répertoire racine par défaut selon la plateforme
-    let default_root = if cfg!(windows) {
-        "C:\\"
-    } else {
-        "/"
+    let default_root = if cfg!(windows) { "C:\\" } else { "/" };
+
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    let (root_dir, config_path_opt) = match args.len() {
+        0 => (default_root.to_string(), None),
+        1 => {
+            let arg = &args[0];
+            if arg.ends_with(".json") && std::path::Path::new(arg).exists() {
+                (default_root.to_string(), Some(arg.clone()))
+            } else {
+                (arg.clone(), None)
+            }
+        }
+        _ => (args[0].clone(), Some(args[1].clone())),
     };
 
-    let root_dir = std::env::args().nth(1).unwrap_or(default_root.to_string());
-
-    // Récupérer le chemin de l'exécutable
     let exe_path = std::env::current_exe().expect("Impossible de récupérer le chemin de l'exécutable");
     let exe_dir = exe_path.parent().expect("Impossible de récupérer le dossier de l'exécutable");
 
-    // Remplacez la lecture locale par un téléchargement HTTP
-    let url = "https://raw.githubusercontent.com/vnabet-isagri/npm_scan/refs/heads/main/malicious_packages.json";
-    let response = reqwest::blocking::get(url)?;
-    let config_content = response.text()?;
-    // Utilisez config_content comme avant (ex: serde_json::from_str(&config_content)?)
+    let config_content = if let Some(config_path) = config_path_opt {
+        std::fs::read_to_string(&config_path)
+            .expect("Impossible de lire le fichier de configuration local")
+    } else {
+        let url = "https://raw.githubusercontent.com/vnabet-isagri/npm_scan/refs/heads/main/malicious_packages.json";
+        let response = reqwest::blocking::get(url)?;
+        response.text()?
+    };
     let config: MaliciousConfig = serde_json::from_str(&config_content)
         .expect("Erreur de parsing du fichier de configuration");
 
