@@ -33,6 +33,9 @@ cargo build --release
 
 ## Utilisation
 
+L'exécutable s'occupe d'aller chercher automatiquement le fichier de configuration des npm malveillants depuis le repository git.
+Ce fichier sera mis à jour régulièrement et vous n'avez rien d'autre à faire que de lancer l'outil.
+
 ### Windows
 
 ```cmd
@@ -41,6 +44,11 @@ npm_scan.exe
 
 # Scanner un répertoire spécifique
 npm_scan.exe "C:\mon\projet"
+
+# Scanner avec un fichier de configuration personnalisé
+npm_scan.exe "C:\chemin\vers\malicious_packages.json"
+# ou en précisant le répertoire
+npm_scan.exe "C:\mon\projet" "C:\chemin\vers\malicious_packages.json"
 ```
 
 ### Linux
@@ -51,6 +59,11 @@ npm_scan.exe "C:\mon\projet"
 
 # Scanner un répertoire spécifique
 ./npm_scan "/home/user/projets"
+
+# Scanner avec un fichier de configuration personnalisé
+./npm_scan "/chemin/vers/malicious_packages.json"
+# ou en précisant le répertoire
+./npm_scan "/home/user/projets" "/chemin/vers/malicious_packages.json
 ```
 
 ## Configuration
