@@ -4,6 +4,8 @@ use walkdir::WalkDir;
 use serde::Deserialize;
 use std::io::Write;
 use chrono::Local;
+use reqwest;
+use std::error::Error;
 
 #[derive(Deserialize)]
 struct PackageLock {
@@ -20,24 +22,25 @@ struct MaliciousConfig {
     malicious_packages: HashMap<String, HashSet<String>>,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     // Définir le répertoire racine par défaut selon la plateforme
     let default_root = if cfg!(windows) {
         "C:\\"
     } else {
         "/"
     };
-    
+
     let root_dir = std::env::args().nth(1).unwrap_or(default_root.to_string());
 
     // Récupérer le chemin de l'exécutable
     let exe_path = std::env::current_exe().expect("Impossible de récupérer le chemin de l'exécutable");
     let exe_dir = exe_path.parent().expect("Impossible de récupérer le dossier de l'exécutable");
-    let config_path = exe_dir.join("malicious_packages.json");
 
-    // Lire le fichier de configuration
-    let config_content = fs::read_to_string(&config_path)
-        .expect(&format!("Fichier de configuration non trouvé : {:?}", config_path));
+    // Remplacez la lecture locale par un téléchargement HTTP
+    let url = "https://raw.githubusercontent.com/vnabet-isagri/npm_scan/refs/heads/main/malicious_packages.json";
+    let response = reqwest::blocking::get(url)?;
+    let config_content = response.text()?;
+    // Utilisez config_content comme avant (ex: serde_json::from_str(&config_content)?)
     let config: MaliciousConfig = serde_json::from_str(&config_content)
         .expect("Erreur de parsing du fichier de configuration");
 
@@ -138,4 +141,6 @@ fn main() {
     // Attendre une entrée utilisateur pour garder la fenêtre ouverte
     println!("Appuyez sur Entrée pour quitter...");
     let _ = std::io::stdin().read_line(&mut String::new());
+
+    Ok(())
 }
